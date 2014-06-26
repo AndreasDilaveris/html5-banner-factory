@@ -1,17 +1,22 @@
 module.exports  = function(grunt){
 
 	var pkg = grunt.file.readJSON('package.json');
+	
 	/* banner sizes for production */
 	var sizeobj = grunt.file.readJSON('sizes.json');
 	
+	/* sizes as array */
 	var sizes=[];
 	for(var a in sizeobj){
-		sizes.push(sizeobj[a]);
+		sizes.push({
+			s:sizeobj[a], 
+			n:a });
 	}
 
 	grunt.initConfig({
-		pkg:grunt.file.readJSON('package.json'),
+		pkg:pkg,
 		sizes:sizes,
+
 		/* collect file paths */
 		paths:{
 			dest:'<%= pkg.dest_paths.core %>',
@@ -21,7 +26,7 @@ module.exports  = function(grunt){
 
 		copy:{
 
-			distribution:{
+			master:{
 				files:{
 					'<%= paths.dest %>/master/js/app.js':'<%= paths.srcjs %>/app.js'
 				}
@@ -30,15 +35,11 @@ module.exports  = function(grunt){
 			distribution:{
 				/* build copy task based on production sizes (sizes.json) */
 				files: ( function(){
-					var products = [];
-					products.push({
-						src:'<%= paths.srcjs %>/app.js', 
-						dest:'<%= paths.dest %>/master/js/app.js'
-					})					
+					var products = [];				
 					for(var s=0;s<sizes.length;s++){
 						products.push({
 							src:'<%= paths.srcjs %>/app.js', 
-							dest:'<%= paths.dest %>/'+sizes[s]+'/js/app.js'
+							dest:'<%= paths.dest %>/'+sizes[s].s+'/js/app.js'
 						})
 					}
 					return products;
@@ -48,18 +49,17 @@ module.exports  = function(grunt){
 		},
 
 		sass:{
-			distribution:{
 
+			distribution:{
 				options:{
 					compass:true
 				},
-
 				files:( function(){
 					var products = [];
 					for(var s=0;s<sizes.length;s++){
 						products.push({
-							src:'<%= paths.srcscss %>/'+sizes[s]+'.scss',
-							dest: '<%= paths.dest %>/'+sizes[s]+'/css/style.css'
+							src:'<%= paths.srcscss %>/'+sizes[s].s+'.scss',
+							dest: '<%= paths.dest %>/'+sizes[s].s+'/css/style.css'
 						})
 					}
 					return products;

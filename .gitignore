@@ -5,3 +5,6 @@ config.rb
 # ignore grunt files
 node_modules
 npm-debug.log
+
+# ignore bower files
+bower_components
