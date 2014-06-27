@@ -1,7 +1,7 @@
 html5-banner-factory
 ======================
 
-Html5 banner project setup for building for deploying suite of banners across different size formats
+Html5 banner project setup for building suite of banners across different size formats
 
 Goal:
 Seperate responsibilities where necessary while keeping common code centralized.
