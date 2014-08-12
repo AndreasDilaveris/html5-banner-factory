@@ -8,9 +8,13 @@ module.exports  = function(grunt){
 	/* sizes as array */
 	var sizes=[];
 	for(var a in sizeobj){
+		var dimensions = sizeobj[a].split('x');
 		sizes.push({
 			s:sizeobj[a], 
-			n:a });
+			n:a,
+			w:parseInt(dimensions[0]),
+			h:parseInt(dimensions[1])
+			 });
 	}
 
 	var frameworks=[
@@ -29,7 +33,7 @@ module.exports  = function(grunt){
 			srcscss:'dev/scss',
 			html:'dev/html',
 			libs:'bower_components/**',
-			assts: 'assets2'			
+			assts: 'assets'			
 		},
 
 		concat:{
@@ -195,24 +199,42 @@ module.exports  = function(grunt){
 					return products;
 				})()
 			}
+		},
+
+		svgo:{
+			all:{
+				// allow dynamic file targeting (??)
+		  //       expand: true,
+		  //       // set relative root folder but dont include in name of destination path
+		  //       cwd:'assets/',			
+				// src:['*.svg'],
+				// dest:'asset-opt/'
+			}			
 		}	
 
 	});
 
-	/* */
+	/* 
+	*/
 
 	grunt.loadNpmTasks("grunt-contrib-concat");
 	grunt.loadNpmTasks("grunt-contrib-uglify");
 	grunt.loadNpmTasks("grunt-contrib-copy");
 	grunt.loadNpmTasks("grunt-contrib-sass");
-	grunt.loadNpmTasks("grunt-contrib-watch");	
+	grunt.loadNpmTasks("grunt-contrib-watch");
 
-	grunt.task.registerTask('setup', 'setup essential files and folders.', function() {
+	grunt.loadNpmTasks("grunt-svgo");		
+
+	/* 
+	*/
+
+	grunt.task.registerTask('makefolders', 'setup essential files and folders.', function() {
 
 		// recursive function for building folder trees
 		
 		function populate (path, sets){
-			if(!sets.length) return; var set=sets.shift();
+			if(!sets.length) return; 
+			var set=sets.shift();
 			set.forEach(function(el,i,arr){
 				var fullpath = path+'/'+el;
 				grunt.file.mkdir(fullpath);
@@ -236,8 +258,43 @@ module.exports  = function(grunt){
 		populate(path, [ ['common'], assets ]);
 		populate(path, [ ['versions'], _sizes, assets ]);			
 
+		//grunt.file.write(filepath, contents [, options]);
 	});	
 
+	/* 
+
+	write base scss and js files - this will be better achieved with proper templating
+
+	*/
+	
+	grunt.task.registerTask('writebase', 'write base files.', function() {
+
+		var scsspath = grunt.template.process('<%= paths.srcscss %>');
+		var jspath = grunt.template.process('<%= paths.srcjs %>');		
+		
+		function init(w, h){
+			var init = '' ;
+				init+= '@import "settings"; \n' ;
+				init+= '$sizex:'+w+'px; \n' ;
+				init+= '$sizey:'+h+'px; \n' ;
+				init+= '@import "core"; \n' ;
+				return init;			
+		}
+
+		for(var s=0;s<sizes.length;s++){
+				grunt.file.write(scsspath+'/'+sizes[s].s+'/styles.scss', init(sizes[s].w, sizes[s].h) );
+		}
+
+		grunt.file.write(scsspath+'/master/styles.scss', init(300, 250)  );
+
+		grunt.file.write(scsspath+'/_common/_settings.scss', '' );		
+		grunt.file.write(scsspath+'/_common/_core.scss', '' );
+
+		grunt.file.write(jspath+'/app.js', '' );
+	
+	});	
+
+	grunt.registerTask('setup', ['makefolders', 'writebase']);	
 	grunt.registerTask('makemaster', ['concat:master', 'copy:master', 'sass:master']);	
 	grunt.registerTask('distribution', ['concat:master','copy:distribution','sass:distribution']);		
 
