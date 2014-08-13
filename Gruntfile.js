@@ -14,12 +14,24 @@ module.exports  = function(grunt){
 			n:a,
 			w:parseInt(dimensions[0]),
 			h:parseInt(dimensions[1])
-			 });
+		});
 	}
 
 	var frameworks=[
-		'TweenLite.js'
+		'TweenLite.js',
+		'CSSPlugin.js'
 	]
+
+	/* build tools */
+	function collect (src, dest){
+		return 	{
+			expand: true,
+			flatten: true,
+			filter: 'isFile', 
+			src:src,
+			dest: dest+'/'
+		}
+	}
 
 	grunt.initConfig({
 		pkg:pkg,
@@ -37,14 +49,34 @@ module.exports  = function(grunt){
 		},
 
 		concat:{
+
 		    options: {
 		      separator: ';',
-		    },				
-			master:{			
+		    },	
+
+			master:{
+
 				/* Classlike functions */
 				src: [ '<%= paths.srcjs %>/**/*.js', '!<%= paths.srcjs %>/app.js', '<%= paths.srcjs %>/app.js' ],
 				dest:'<%= paths.mstr %>/app.js'
-			}
+			},
+
+			distribution:{			
+				/* Classlike functions */
+				src: (function(){
+					var path = '<%= paths.srcjs %>/'+sizes[s].s;
+	
+					var products = [];				
+					for(var s=0;s<sizes.length;s++){
+						products.push({
+							src:'<%= paths.srcjs %>/'+frameworks[s],
+							dest:'<%= paths.mstr %>/'+frameworks[s]
+						})
+					}
+					return products;					
+				})(),
+				dest:'<%= paths.mstr %>/app.js'
+			}			
 		},
 
 		copy:{
@@ -80,35 +112,32 @@ module.exports  = function(grunt){
 							})
 						}
 
+						/* ASSETS */
+
 						// common assets
 
-						products.push({
-							expand: true,
-							flatten: true,
-							filter: 'isFile', 
-							src:'<%= paths.assts %>/common/**/*',
-							dest: destination+'/'
-						})
+						products.push(
+							collect (
+								'<%= paths.assts %>/common/**/*', 
+								destination
+								));
 
 						// version assets
 
-						// products.push({
-						// 	expand: true,
-						// 	flatten: true,
-						// 	filter: 'isFile', 
-						// 	src:'<%= paths.assts %>/versions/'+sizes[s].s+'/**/*',
-						// 	dest: destination+'/'
-						// })
+						// products.push(
+						// 	collect (
+						// 		'<%= paths.assts %>/'+sizes[s].s+'/**/*', 
+						// 		destination
+						// 		));
 
 						// html
 
-						products.push({
-							expand: true,
-							flatten: true,
-							filter: 'isFile', 							
-							src:'<%= paths.html %>/*',
-							dest: destination+'/'
-						})
+						products.push(
+							collect (
+								'<%= paths.html %>/*', 
+								destination
+								));
+																								
 
 						return products;
 				})()
@@ -120,16 +149,20 @@ module.exports  = function(grunt){
 				files: ( function(){
 					var products = [];				
 					for(var s=0;s<sizes.length;s++){
-						var destination = '<%= paths.dest %>/'+sizes[s].s
+
+						var version = sizes[s].s ;
+						var destination = '<%= paths.dest %>' + '/' + version ;
+
+						// JS
 
 						// js files
 
-						products.push({
-							src:'<%= paths.mstr %>/app.js',
-							dest: destination+'/app.js'
-						})
+						// products.push({
+						// 	src:'<%= paths.mstr %>/app.js',
+						// 	dest: destination+'/app.js'
+						// })
 
-						// frameworks files - should probably be concatenated 
+						// js frameworks files - should probably be concatenated 
 
 						for(var f=0;f<frameworks.length;f++){
 							products.push({
@@ -138,37 +171,36 @@ module.exports  = function(grunt){
 							})
 						}
 
+						/* ASSETS */
+
 						// common assets
 
-						products.push({
-							expand: true,
-							flatten: true,
-							filter: 'isFile', 
-							src:'<%= paths.assts %>/common/**/*',
-							dest: destination+'/'
-						})
+						products.push(
+							collect (
+								'<%= paths.assts %>/common/**/*', 
+								destination
+								));
 
 						// version assets
 
-						products.push({
-							expand: true,
-							flatten: true,
-							filter: 'isFile', 
-							src:'<%= paths.assts %>/versions/'+sizes[s].s+'/**/*',
-							dest: destination+'/'
-						})
+						products.push(
+							collect (
+								'<%= paths.assts %>/'+version+'/**/*', 
+								destination
+								));
 
 						// html
 
-						products.push({
-							expand: true,
-							flatten: true,
-							filter: 'isFile', 							
-							src:'<%= paths.html %>/*',
-							dest: destination+'/'
-						})																										
+						products.push(
+							collect (
+								'<%= paths.html %>/*', 
+								destination
+								));
+																									
 					}				
+					
 					return products;
+					
 				})()
 			}
 
@@ -255,10 +287,14 @@ module.exports  = function(grunt){
 					return _libs;					
 				})()
 
-		populate(path, [ ['common'], assets ]);
-		populate(path, [ ['versions'], _sizes, assets ]);			
 
-		//grunt.file.write(filepath, contents [, options]);
+
+		//populate(path, [ ['common'], assets ]);
+		//populate(path, [ ['versions'], _sizes, assets ]);			
+
+
+		_sizes.push('common');
+		populate(path, [ _sizes, assets ]);	
 	});	
 
 	/* 
@@ -266,7 +302,7 @@ module.exports  = function(grunt){
 	write base scss and js files - this will be better achieved with proper templating
 
 	*/
-	
+
 	grunt.task.registerTask('writebase', 'write base files.', function() {
 
 		var scsspath = grunt.template.process('<%= paths.srcscss %>');
@@ -291,6 +327,8 @@ module.exports  = function(grunt){
 		grunt.file.write(scsspath+'/_common/_core.scss', '' );
 
 		grunt.file.write(jspath+'/app.js', '' );
+
+		grunt.file.mkdir(grunt.template.process('<%= paths.html %>'));
 	
 	});	
 
