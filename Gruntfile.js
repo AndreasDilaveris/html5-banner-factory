@@ -33,9 +33,50 @@ module.exports  = function(grunt){
 		}
 	}
 
+	function copyFiles(version, destination){						
+		var products = [];
+			for(var f=0;f<frameworks.length;f++){
+				products.push({
+					src:'<%= paths.libs %>/'+frameworks[f],
+					dest: destination+'/'+frameworks[f]
+				})
+			}
+
+			/* ASSETS */
+
+			// common assets
+
+			products.push(
+				collect (
+					'<%= paths.assts %>/common/**/*', 
+					destination
+					));
+
+			// version assets
+
+			products.push(
+				collect (
+					'<%= paths.assts %>/'+version+'/**/*', 
+					destination
+					));
+
+			// html
+
+			products.push(
+				collect (
+					'<%= paths.html %>/*', 
+					destination
+					));
+																					
+
+			return products;
+	}	
+
 	grunt.initConfig({
+
 		pkg:pkg,
 		sizes:sizes,
+		masterbuild: sizeobj.mpu,
 
 		/* collect file paths */
 		paths:{
@@ -55,27 +96,40 @@ module.exports  = function(grunt){
 		    },	
 
 			master:{
+				/* Classlike functions */
+				files: (function(){
+					var products = [];
+
+					var version = '<%= masterbuild %>' ;
+					var versionjs = '<%= paths.srcjs %>' + '/' + version + '/**/*.js';
+					var destination = '<%= paths.dest %>'  + '/' + version ;						
+					products.push({
+						src: [versionjs, '<%= paths.srcjs %>/common/**/*.js', '!<%= paths.srcjs %>/common/app.js', '<%= paths.srcjs %>/common/app.js' ],
+						dest: destination+'/app.js'
+					})
+
+					return products;					
+				})()
 
 				/* Classlike functions */
-				src: [ '<%= paths.srcjs %>/**/*.js', '!<%= paths.srcjs %>/app.js', '<%= paths.srcjs %>/app.js' ],
-				dest:'<%= paths.mstr %>/app.js'
+				// src: [ '<%= paths.srcjs %>/common/**/*.js', '!<%= paths.srcjs %>/common/app.js', '<%= paths.srcjs %>/common/app.js' ],
+				// dest:'<%= paths.mstr %>/app.js'
 			},
 
 			distribution:{			
-				/* Classlike functions */
-				src: (function(){
-					var path = '<%= paths.srcjs %>/'+sizes[s].s;
-	
+				files: (function(){
 					var products = [];				
 					for(var s=0;s<sizes.length;s++){
+						var version = sizes[s].s ;
+						var versionjs = '<%= paths.srcjs %>' + '/' + version + '/**/*.js';
+						var destination = '<%= paths.dest %>'  + '/' + version ;						
 						products.push({
-							src:'<%= paths.srcjs %>/'+frameworks[s],
-							dest:'<%= paths.mstr %>/'+frameworks[s]
+							src: [versionjs, '<%= paths.srcjs %>/common/**/*.js', '!<%= paths.srcjs %>/common/app.js', '<%= paths.srcjs %>/common/app.js' ],
+							dest: destination+'/app.js'
 						})
 					}
 					return products;					
-				})(),
-				dest:'<%= paths.mstr %>/app.js'
+				})()
 			}			
 		},
 
@@ -99,47 +153,13 @@ module.exports  = function(grunt){
 
 				/* build copy task based on production sizes (sizes.json) */
 				files: ( function(){
-						var products = [];
 
-						var destination = '<%= paths.mstr %>';
+						var version = '<%= masterbuild %>' ;
+						var destination = '<%= paths.dest %>' + '/' + version ;
 
 						// frameworks files should probably be concatenated 
 
-						for(var f=0;f<frameworks.length;f++){
-							products.push({
-								src:'<%= paths.libs %>/'+frameworks[f],
-								dest: destination+'/'+frameworks[f]
-							})
-						}
-
-						/* ASSETS */
-
-						// common assets
-
-						products.push(
-							collect (
-								'<%= paths.assts %>/common/**/*', 
-								destination
-								));
-
-						// version assets
-
-						// products.push(
-						// 	collect (
-						// 		'<%= paths.assts %>/'+sizes[s].s+'/**/*', 
-						// 		destination
-						// 		));
-
-						// html
-
-						products.push(
-							collect (
-								'<%= paths.html %>/*', 
-								destination
-								));
-																								
-
-						return products;
+						return copyFiles(version, destination);
 				})()
 			},			
 
@@ -148,59 +168,51 @@ module.exports  = function(grunt){
 				/* build copy task based on production sizes (sizes.json) */
 				files: ( function(){
 					var products = [];				
-					for(var s=0;s<sizes.length;s++){
+					for(var s=0; s<sizes.length; s++){
 
 						var version = sizes[s].s ;
 						var destination = '<%= paths.dest %>' + '/' + version ;
 
-						// JS
-
-						// js files
-
-						// products.push({
-						// 	src:'<%= paths.mstr %>/app.js',
-						// 	dest: destination+'/app.js'
-						// })
-
 						// js frameworks files - should probably be concatenated 
+						console.log(copyFiles(version, destination))
+						products = products.concat(copyFiles(version, destination));
+						// for(var f=0;f<frameworks.length;f++){
+						// 	products.push({
+						// 		src:'<%= paths.libs %>/'+frameworks[f],
+						// 		dest: destination+'/'+frameworks[f]
+						// 	})
+						// }
 
-						for(var f=0;f<frameworks.length;f++){
-							products.push({
-								src:'<%= paths.libs %>/'+frameworks[f],
-								dest: destination+'/'+frameworks[f]
-							})
-						}
+						// /* ASSETS */
 
-						/* ASSETS */
+						// // common assets
 
-						// common assets
+						// products.push(
+						// 	collect (
+						// 		'<%= paths.assts %>/common/**/*', 
+						// 		destination
+						// 		));
 
-						products.push(
-							collect (
-								'<%= paths.assts %>/common/**/*', 
-								destination
-								));
+						// // version assets
 
-						// version assets
+						// products.push(
+						// 	collect (
+						// 		'<%= paths.assts %>/'+version+'/**/*', 
+						// 		destination
+						// 		));
 
-						products.push(
-							collect (
-								'<%= paths.assts %>/'+version+'/**/*', 
-								destination
-								));
+						// // html
 
-						// html
-
-						products.push(
-							collect (
-								'<%= paths.html %>/*', 
-								destination
-								));
+						// products.push(
+						// 	collect (
+						// 		'<%= paths.html %>/*', 
+						// 		destination
+						// 		));
 																									
 					}				
-					
+					console.log(products)
 					return products;
-					
+
 				})()
 			}
 
@@ -214,7 +226,7 @@ module.exports  = function(grunt){
 
 			master:{
 				files:{
-					'<%= paths.dest %>/master/styles.css':'<%= paths.srcscss %>/master/styles.scss'
+					'<%= paths.dest %>/<%= masterbuild %>/styles.css':'<%= paths.srcscss %>/<%= masterbuild %>/styles.scss'
 					}
 			},
 
@@ -294,7 +306,11 @@ module.exports  = function(grunt){
 
 
 		_sizes.push('common');
+
 		populate(path, [ _sizes, assets ]);	
+
+		path = grunt.template.process('<%= paths.srcjs %>');
+		populate(path, [ _sizes ]);
 	});	
 
 	/* 
@@ -304,9 +320,12 @@ module.exports  = function(grunt){
 	*/
 
 	grunt.task.registerTask('writebase', 'write base files.', function() {
+		
+		/*
+		SCSS
+		*/
 
-		var scsspath = grunt.template.process('<%= paths.srcscss %>');
-		var jspath = grunt.template.process('<%= paths.srcjs %>');		
+		var scsspath = grunt.template.process('<%= paths.srcscss %>');		
 		
 		function init(w, h){
 			var init = '' ;
@@ -326,20 +345,57 @@ module.exports  = function(grunt){
 		grunt.file.write(scsspath+'/_common/_settings.scss', '' );		
 		grunt.file.write(scsspath+'/_common/_core.scss', '' );
 
+		
+		/*
+		JS
+		*/
+
+		var jspath = grunt.template.process('<%= paths.srcjs %>'+'/common');
 		grunt.file.write(jspath+'/app.js', '' );
+		
+		/*
+		HTML
+		*/
 
 		grunt.file.mkdir(grunt.template.process('<%= paths.html %>'));
 	
 	});	
 
-	grunt.registerTask('setup', ['makefolders', 'writebase']);	
-	grunt.registerTask('makemaster', ['concat:master', 'copy:master', 'sass:master']);	
-	grunt.registerTask('distribution', ['concat:master','copy:distribution','sass:distribution']);		
+	
+	/*******************
+	PROJECT TASKS
+	********************/
 
-	grunt.task.registerTask('log', 'Log stuff.', function() {
-		var path = grunt.template.process('<%= paths.srcjs %>/app.js');
-		var content =  grunt.file.read( path );
-		grunt.log.write( grunt.template.process( content ) );
-	  	//grunt.log.writeln(this.target + ': ' + ( this.data instanceof Object && !(this.data instanceof Array)));
+
+	/*
+	setup - run after project.json is configured 
+	*/
+
+	grunt.registerTask('setup', ['makefolders', 'writebase']);
+
+	/*
+	make master - master is defined in project.json 	
+	*/
+
+	grunt.registerTask('makemaster', ['concat:master', 'copy:master', 'sass:master']);
+	
+	/*
+	make any - temporarily change master
+	*/
+
+	grunt.registerTask('make', 'Make a new post dir.', function(build) {
+	  if (build != null) {
+	  	grunt.config.set('masterbuild', build.toString());
+	    grunt.task.run('makemaster');
+	  }
 	});	
+	
+	/*
+	make all
+	*/
+
+	grunt.registerTask('distribution', ['concat:distribution','copy:distribution','sass:distribution']);		
+
+
+
 }
