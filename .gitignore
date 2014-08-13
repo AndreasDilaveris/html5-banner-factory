@@ -8,3 +8,8 @@ npm-debug.log
 
 # ignore bower files
 bower_components
+
+#ignore build folders
+assets
+dev
+dist
