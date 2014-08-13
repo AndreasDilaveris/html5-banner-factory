@@ -186,7 +186,6 @@ module.exports  = function(grunt){
 						products = products.concat(copyFiles(version, destination));
 																									
 					}				
-					console.log(products)
 					return products;
 
 				})()
