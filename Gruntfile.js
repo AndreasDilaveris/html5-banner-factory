@@ -42,7 +42,8 @@ module.exports  = function(grunt){
 		}
 	}
 
-	function copyFiles(version, destination){						
+	function copyFiles(version, destination){
+
 		var products = [];
 
 		/* Libraries */
@@ -196,7 +197,8 @@ module.exports  = function(grunt){
 		sass:{
 
 			options:{
-				compass:true
+				compass:true,
+				loadPath:['<%= paths.srcscss %>/common']
 			},
 
 			master:{
@@ -288,6 +290,10 @@ module.exports  = function(grunt){
 		populate(path, [ _sizes, assets ]);	
 
 		path = grunt.template.process('<%= paths.srcjs %>');
+		populate(path, [ _sizes ]);
+
+		/* html */
+		path = grunt.template.process('<%= paths.html %>');
 		populate(path, [ _sizes ]);
 	});	
 
