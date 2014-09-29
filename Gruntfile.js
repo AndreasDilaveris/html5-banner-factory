@@ -20,7 +20,7 @@ module.exports  = function(grunt){
 	for(var a in sizeobj){
 		var dimensions = sizeobj[a].split('x');
 		sizes.push({
-			s:sizeobj[a], 
+			s:sizeobj[a]+'-'+a, 
 			n:a,
 			w:parseInt(dimensions[0]),
 			h:parseInt(dimensions[1])
@@ -102,6 +102,8 @@ module.exports  = function(grunt){
 
 		pkg:pkg,
 		sizes:sizes,
+
+		// this needs to be set at runtime or somehow prompted 
 		masterbuild:sizeobj.mpu,
 
 		/* collect file paths */
