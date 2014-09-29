@@ -13,3 +13,6 @@ list of deliverable sizes.  used by Gruntfile for task configuration
 
 Gruntfile.js - 
 provides a set of methods to output suite of banners, setup up project etc
+
+USAGE:
+======================
